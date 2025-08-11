@@ -1,0 +1,158 @@
+{
+  "id": "level_1",
+  "width": 10,
+  "height": 10,
+  "movesLimit": 30,
+  "tileTypes": {
+    "color": {
+      "blue": {},
+      "green": {},
+      "purpure": {},
+      "red": {},
+      "yellow": {}
+    },
+    "bonus": {
+      "rocket": {
+        "effect": {
+          "type": "clear_line",
+          "directions": "horizontal"
+        }
+      },
+      "rocket_vertical": {
+        "effect": {
+          "type": "clear_line",
+          "directions": "vertical"
+        }
+      },
+      "rocket_cross": {
+        "effect": {
+          "type": "clear_line",
+          "directions": [
+            "vertical",
+            "horizontal"
+          ]
+        }
+      },
+      "bomb": {
+        "effect": {
+          "type": "clear_radius",
+          "radius": 2
+        }
+      },
+      "color_ball": {
+        "effect": {
+          "type": "clear_color",
+          "color": "inherit"
+        }
+      },
+      "supernova": {
+        "effect": {
+          "type": "clear_radius",
+          "radius": -1
+        }
+      }
+    }
+  },
+  "defaultTiles": {
+    "color": [
+      "blue",
+      "green",
+      "purpure",
+      "red",
+      "yellow"
+    ]
+  },
+  "matchRules": {
+    "color": {
+      "match": {
+        "type": "min_max",
+        "min": 2
+      }
+    }
+  },
+  "mergeRules": {
+    "color": {
+      "rocket": {
+        "min": 5,
+        "max": 6,
+        "result": [
+          "rocket_vertical",
+          "rocket_horizontal"
+        ]
+      },
+      "bomb": {
+        "min": 7,
+        "max": 10,
+        "result": "bomb"
+      },
+      "color_ball": {
+        "min": 8,
+        "result": "color_ball"
+      },
+      "supernova": {
+        "min": 9,
+        "result": "supernova"
+      }
+    }
+  },
+  "comboRules": {
+    "bonus": {
+      "rocket_cross": {
+        "include": [
+          "rocket_vertical",
+          "rocket_horizontal"
+        ],
+        "result": "rocket_cross"
+      },
+      "bomb_big": {
+        "include": [
+          "bomb"
+        ],
+        "result": "bomb_big"
+      },
+      "rocket_bomb": {
+        "include": [
+          [
+            "rocket_vertical",
+            "rocket_horizontal"
+          ],
+          "bomb"
+        ],
+        "result": [
+          [
+            "rocket_cross",
+            "rocket_cross",
+            "rocket_cross"
+          ],
+          [
+            "rocket_cross",
+            "rocket_cross",
+            "rocket_cross"
+          ],
+          [
+            "rocket_cross",
+            "rocket_cross",
+            "rocket_cross"
+          ]
+        ]
+      },
+      "supernova": {
+        "include": [
+          [
+            "rocket_vertical",
+            "rocket_horizontal"
+          ],
+          "bomb",
+          "color_ball"
+        ],
+        "result": "supernova"
+      }
+    }
+  },
+  "objectives": [
+    {
+      "type": "score",
+      "target": 1000
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "id": "level_1",
+  "width": 9,
+  "height": 9,
+  "maxShuffles": 3,
+  "tile_groups": [
+    {
+      "group_id": "color",
+      "base_effect": {
+        "type": "destroy"
+      },
+      "tiles": [
+        {
+          "id": "blue",
+          "sprite": "1880f67c-0dbb-4093-a7e9-0ebf2e0bb36a"
+        },
+        {
+          "id": "green",
+          "sprite": "5a295ab0-3781-4d74-b84e-e6713ddbd167"
+        },
+        {
+          "id": "purpure",
+          "sprite": "1a113447-f051-4d0c-b01b-97fc91abe786"
+        },
+        {
+          "id": "red",
+          "sprite": "a81bb176-1e6b-4fd1-92a5-e3fd4b4c6505"
+        },
+        {
+          "id": "yellow",
+          "sprite": "547b8fea-5d6b-41de-8f35-e281a9850e69"
+        }
+      ]
+    },
+    {
+      "group_id": "bonus",
+      "base_effect": {
+        "type": "destroy"
+      },
+      "tiles": [
+        {
+          "id": "rocket_horizontal",
+          "sprite": "f5573a97-d67e-4c93-96e1-ccb71f051767",
+          "effect": {
+            "type": "destroy_line",
+            "directions": [
+              "horizontal"
+            ]
+          }
+        },
+        {
+          "id": "rocket_vertical",
+          "sprite": "2c1eb582-6f69-424e-a0ee-5dd5bf387248",
+          "effect": {
+            "type": "destroy_line",
+            "directions": [
+              "vertical"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "match_rule_groups": [
+    {
+      "group_id": "color",
+      "match_rule": {
+        "type": "match",
+        "matchBy": "id",
+        "min": 2
+      }
+    },
+    {
+      "group_id": "bonus",
+      "match_rule": {
+        "type": "match",
+        "matchBy": "group_id",
+        "min": 1
+      }
+    }
+  ],
+  "default_tiles": {
+    "groups": [
+      "color"
+    ],
+    "tiles": []
+  },
+  "merge_rule_groups": [
+    {
+      "group_id": "color",
+      "merge_rules": [
+        {
+          "type": "min_max",
+          "min": 5,
+          "result": [
+            "rocket_vertical",
+            "rocket_horizontal"
+          ]
+        }
+      ]
+    }
+  ]
+}
