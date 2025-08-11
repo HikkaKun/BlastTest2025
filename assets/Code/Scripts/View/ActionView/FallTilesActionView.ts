@@ -1,6 +1,6 @@
-import { SwapCommand } from '../../Game3/Actions/Commands/SwapCommand';
-import { Tile } from '../../Game3/Tile';
-import GameView from '../GameView3';
+import { SwapCommand } from '../../Game/Actions/Commands/SwapCommand';
+import { Tile } from '../../Game/Tile';
+import GameView from '../GameView';
 import { ActionView } from './ActionView';
 
 export class FallTilesActionView extends ActionView {

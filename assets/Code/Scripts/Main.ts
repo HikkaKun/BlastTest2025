@@ -1,24 +1,21 @@
+import { Config } from './Game/Config';
 import { Game } from './Game/Game';
-import { GameConfig } from './Game/GameConfig';
 import GameView from './View/GameView';
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class Main extends cc.Component {
-    @property({ visible: true, type: cc.JsonAsset })
-    private _config: cc.JsonAsset = null!;
+    @property({ type: GameView, visible: true })
+    private _gameView: GameView = null!;
 
-    @property({ visible: true, type: GameView })
-    private _view: GameView = null!;
-
-    protected start() {
-        const config = this._config.json as GameConfig;
+    protected start(): void {
+        const config: Config = {
+            width: 9,
+            height: 9,
+        };
         const game = new Game(config);
-        this._view.bind(game);
 
-        game.start();
-
-        // game.tryBlastPosition({ x: 1, y: 1 });
+        this._gameView.bind(game);
     }
 }

@@ -1,6 +1,6 @@
-import { Action } from '../../Game3/Actions/Action';
-import { Tile } from '../../Game3/Tile';
-import GameView from '../GameView3';
+import { Action } from '../../Game/Actions/Action';
+import { Tile } from '../../Game/Tile';
+import GameView from '../GameView';
 
 export abstract class ActionView<T extends Tile = Tile> {
   protected _action: Action<T>;

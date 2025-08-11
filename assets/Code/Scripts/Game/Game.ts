@@ -1,116 +1,89 @@
-import { FieldBlastCommand } from './Commands/FieldCommand/FieldBlastCommand';
-import { FieldCommand } from './Commands/FieldCommand/FieldCommand';
-import { FieldFallCommand } from './Commands/FieldCommand/FieldFallCommand';
-import { FieldFillCommand } from './Commands/FieldCommand/FieldFillCommand';
-import { Field } from './Data/Field';
-import { GameConfig } from './GameConfig';
-import { GameEvent } from './GameEvent';
-import { TileStrategy } from './TileStrategy';
-import { createField, getConnectedTilePositions } from './Utils/Field';
+import { getRandomElementArray } from '../Utils/Arrays';
+import { RocketTileAction } from './Actions/Bonus/RocketTileAction';
+import { DeleteTilesAction } from './Actions/Common/DeleteTilesAction';
+import { FallTilesAction } from './Actions/Common/FallTilesAction';
+import { FillTilesAction } from './Actions/Common/FillTilesAction';
+import { Color } from './Color';
+import { Config } from './Config';
+import { BonusTile, Tile } from './Tile';
+import { dijkstra, getNeighbors4 } from './Utils/Dijkstra';
 
-export class Game<Type extends string, Color extends string> extends cc.EventTarget {
-  private _commands: FieldCommand[][] = [];
-
-  private _config: GameConfig<Type, Color>;
-  public get config(): Readonly<typeof this._config> {
+export class Game extends cc.EventTarget {
+  private _config: Config;
+  public get config() {
     return this._config;
   }
 
-  private _field: Field<Type, Color>;
-  public get field(): Readonly<typeof this._field> {
-    return this._field
+  private _field: (Tile | null)[][];
+  public get field() {
+    return this._field;
   }
 
-  public get width() {
-    return this._config.width;
-  }
-
-  public get height() {
-    return this._config.height;
-  }
-
-  constructor(config: GameConfig<Type, Color>) {
+  constructor(config: Config) {
     super();
 
     this._config = config;
-    const { width, height } = config;
-    this._field = createField<Type, Color>(width, height, () => null);
-  }
-
-  private _doAndPushIfAffected(out: FieldCommand[], command: FieldCommand) {
-    command.do();
-    if (command.getTileCommands().length === 0) return out;
-    out.push(command);
-
-    return out;
-  }
-
-  public start() {
-    const result = this._doAndPushIfAffected([], new FieldFillCommand(this._field, this._config, false));
-    this._commands.push(result);
-    this.emit(GameEvent.DO_COMMAND, result);
-  }
-
-  public canDoMoveAtTile(position: IVec2Like): boolean {
-    const tile = this._field[position.x][position.y];
-    if (!tile) return false;
-
-    const tileStrategy = this._config.tileStrategies[tile.type];
-    switch (tileStrategy) {
-      case TileStrategy.DESTROY_SAME_COLOR:
-        const connectedAmount = getConnectedTilePositions(this._field, position).length;
-        if (connectedAmount < 2) return false;
-      default:
-        return true;
-    }
-  }
-
-  public canDoAnyMoves(): boolean {
-    const position = { x: 0, y: 0 };
-    for (let x = 0; x < this.width; x++) {
-      for (let y = 0; y < this.height; y++) {
-        position.x = x;
-        position.y = y;
-        if (this.canDoMoveAtTile(position)) return true;
+    this._field = [];
+    for (let x = 0; x < config.width; x++) {
+      const column: (Tile | null)[] = [];
+      this._field.push(column);
+      for (let y = 0; y < config.height; y++) {
+        column.push(this._createRegularTile());
       }
     }
-
-    return false;
   }
 
-  public tryDoMove(position: IVec2Like) {
-    const commands: FieldCommand[] = [];
-    const { x, y } = position;
-    if (x < 0 || x >= this.width || y < 0 || y >= this.height) return;
+  public userInput(position: IVec2Like) {
+    const field = this._field;
+    const tile = this._field[position.x][position.y];
+    if (!tile) return;
+    const actions = [];
 
-    if (!this.canDoMoveAtTile(position)) return;
-    const tile = this._field[x][y]!;
-    const tileStrategy = this._config.tileStrategies[tile.type];
-    switch (tileStrategy) {
-      case TileStrategy.DESTROY_SAME_COLOR:
-        this._doAndPushIfAffected(commands, new FieldBlastCommand(this._field, position));
+    if (tile.type === 'color') {
+      const tiles = this._getConnectedTilesByColor(position);
+      if (tiles.length < 2) return;
 
-        if (commands[0].getTileCommands().length >= this.config.minTilesGroupForSuperTile) {
-          
-        } else {
-          this._doAndPushIfAffected(commands, new FieldFallCommand(this._field, this._config));
-          this._doAndPushIfAffected(commands, new FieldFillCommand(this._field, this._config, true));
+      actions.push(new DeleteTilesAction(tiles).do(field));
+    }
+    if (tile.type === 'bonus') {
+      const bonusTiles: BonusTile[] = [tile];
+      do {
+        const tile = bonusTiles.shift()!;
+        switch (tile.bonusType) {
+          case 'rocket':
+            actions.push(new RocketTileAction(position, tile).do(this._field, bonusTiles));
+            break;
         }
+      } while (bonusTiles.length);
     }
 
-    if (!commands.length) return;
-    this._commands.push(commands);
-    this.emit(GameEvent.DO_COMMAND, commands);
+    actions.push(
+      new FallTilesAction().do(field),
+      new FillTilesAction(() => this._createRegularTile()).do(field),
+    );
+
+    this.emit('DO_ACTIONS', actions);
+    return actions;
   }
 
-  public undo() {
-    const lastCommands = this._commands.pop();
-    if (!lastCommands) return;
-    lastCommands.reverse();
-    for (const command of lastCommands) {
-      command.undo();
-    }
+  private _createRegularTile(): Tile {
+    const tile: Tile = {
+      type: 'color',
+      color: getRandomElementArray<Color>(['blue', 'green', 'purpure', 'red', 'yellow'])
+    };
 
-    this.emit(GameEvent.UNDO_COMMAND, lastCommands);
+    return tile;
+  }
+
+  private _getConnectedTilesByColor(startPosition: IVec2Like): IVec2Like[] {
+    const tile = this._field[startPosition.x][startPosition.y];
+    if (!tile || tile.type !== 'color') return [];
+    const color = tile.color;
+
+    return dijkstra(
+      this._field,
+      startPosition,
+      (field, startPosition) => getNeighbors4(field, startPosition).filter(({ x, y }) => field[x][y]?.type === 'color' && field[x][y].color === color)
+    );
   }
 }

@@ -1,81 +1,93 @@
+import { Tile } from '../Game/Tile';
 import GameView from './GameView';
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class TileView<Type extends string = string, Color extends string = string> extends cc.Component {
-    @property(cc.Sprite)
-    public readonly sprite: cc.Sprite = null!;
+export default class TileView3 extends cc.Component {
+  @property({ type: cc.Sprite, visible: true })
+  private _sprite: cc.Sprite = null!;
 
-    private _view?: GameView<Type, Color>;
-    private _position = new cc.Vec2();
-    private _tween?: cc.Tween;
+  private _config?: {
+    view: GameView;
+    position: IVec2Like;
+    tile: Tile;
+  }
+  public get config() {
+    return this._config;
+  }
 
-    protected onEnable(): void {
-        this._toggleEvents('on');
-    }
+  private _tween?: cc.Tween;
 
-    protected onDisable(): void {
-        this._toggleEvents('off');
-    }
+  protected onEnable(): void {
+    this._toggleEvents('on');
+  }
 
-    protected _toggleEvents(func: 'on' | 'off') {
-        this.node[func](cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
-    }
+  protected onDisable(): void {
+    this._toggleEvents('off');
+  }
 
-    public bind(view: GameView<Type, Color>, position: IVec2Like) {
-        this._view = view;
-        this._position.set(position as cc.Vec2);
-    }
+  protected _toggleEvents(func: 'on' | 'off') {
+    this.node[func](cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
+  }
 
-    public setTilePosition(position: IVec2Like) {
-        this._position.set(position as cc.Vec2);
-    }
+  public bind(view: GameView, position: IVec2Like, tile: Tile) {
+    this._config = {
+      view,
+      position,
+      tile
+    };
 
-    public setPositionAndMove(position: IVec2Like, speed: number, fallAnimation: boolean) {
-        if (!this._view || !this._position) return 0;
+    this._sprite.spriteFrame = view.getTileSprite(tile);
 
-        const distance = cc.Vec2.distance(position, this._position);
-        const time = distance / speed;
-        if (fallAnimation) {
-            this._tween?.stop();
-            this._tween = new cc.Tween(this.node)
-                .to(time, { position: this._view.getTileViewPosition(new cc.Vec2(), position) }, {
-                    easing: cc.easing.bounceOut
-                })
-                .start();
-        } else {
-            this._tween?.stop();
-            this._tween = new cc.Tween(this.node)
-                .to(time, { position: this._view.getTileViewPosition(new cc.Vec2(), position) }, {
-                    easing: cc.easing.sineOut
-                })
-                .start();
-        }
+    return this;
+  }
 
-        this._position.set(position as cc.Vec2);
-        return time;
-    }
+  public setPosition(position: IVec2Like) {
+    if (!this._config) return this;
+    this._config.position = position;
 
-    public animateScale() {
-        this.node.setScale(0);
+    return this;
+  }
 
-        const time = 0.5;
-        this._tween?.stop();
-        this._tween = new cc.Tween<cc.Node>(this.node)
-            .to(time, { scale: 1 }, {
-                easing: cc.easing.backOut
-            })
-            .start();
+  public animateDestroy(destroyAfterAnimation = true): number {
+    if (!this._config) return 0;
 
-        return time;
-    }
+    this._tween?.stop();
+    this._tween = new cc.Tween(this.node)
+      .to(0.3, { scale: 0 }, { easing: 'sineOut' })
+      .call(() => destroyAfterAnimation && this.node.destroy())
+      .start();
 
-    protected onTouchStart() {
-        if (!this._view || !this._position) return;
+    return 0;
+  }
 
-        this._view.touchTile(this._position);
-    }
+  public animateFall(): number {
+    if (!this._config) return 0;
+
+    const position = this._config.view.getViewPosition(new cc.Vec2(), this._config.position);
+    const distance = cc.Vec2.distance(position, this.node.position as unknown as cc.Vec2);
+    const time = distance / this._config.view.tileSpeed;
+    this._tween?.stop();
+    this._tween = new cc.Tween(this.node)
+      .to(time, { position }, { easing: 'linear' })
+      .call(() => this._animateLanding())
+      .start();
+
+    return time;
+  }
+
+  private _animateLanding() {
+    if (!this._config) return;
+
+    this._tween?.stop();
+    this._tween = new cc.Tween(this._sprite.node)
+      .to(0.1, { y: this._config.view.tileSize.y * 0.2, scaleX: 1.1, scaleY: 0.9 }, { easing: 'cubicOut' })
+      .to(0.2, { y: 0, scale: 1 }, { easing: 'backOut' })
+      .start();
+  }
+
+  protected onTouchStart() {
+    this._config?.view.userInput(this._config.position);
+  }
 }
-
-const temp = new cc.Vec2();
