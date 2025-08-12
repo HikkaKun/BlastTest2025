@@ -4,7 +4,7 @@ import GameView from './GameView';
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class TileView3 extends cc.Component {
+export default class TileView extends cc.Component {
   @property({ type: cc.Sprite, visible: true })
   private _sprite: cc.Sprite = null!;
 
@@ -81,6 +81,41 @@ export default class TileView3 extends cc.Component {
 
     return time;
   }
+
+  public animateMerge(destroyAfterAnimation = true): number {
+    if (!this._config) return 0;
+    const position = this._config.view.getViewPosition(new cc.Vec2(), this._config.position);
+    const time = 0.2;
+    this.moveToTop();
+    this._tweenCancelCallback?.();
+    this._tween?.stop();
+    this._tween = new cc.Tween(this.node)
+      .to(time, { position }, { easing: 'backIn' })
+      .call(() => destroyAfterAnimation && this.node.destroy())
+      .start();
+
+    return time;
+  }
+
+  public animateAppear(): number {
+    if (!this.config) return 0;
+
+    this.node.scale = 0;
+    const time = 0.2;
+    this._tweenCancelCallback?.();
+    this._tweenCancelCallback = () => this.node.scale = 1;
+    this._tween?.stop();
+    this._tween = new cc.Tween(this.node)
+      .to(time, { scale: 1 }, { easing: 'backOut' })
+      .start();
+
+    return time;
+  }
+
+  public moveToTop() {
+    this.node.zIndex = 1;
+  }
+
 
   private _animateLanding() {
     if (!this._config) return;

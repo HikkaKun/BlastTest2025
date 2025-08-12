@@ -1,7 +1,7 @@
-import { SwapCommand } from '../../Game/Actions/Commands/SwapCommand';
-import { Tile } from '../../Game/Tile';
-import GameView from '../GameView';
-import { ActionView } from './ActionView';
+import { SwapCommand } from '../../../Game/Actions/Commands/SwapCommand';
+import { Tile } from '../../../Game/Tile';
+import GameView from '../../GameView';
+import { ActionView } from '../ActionView';
 
 export class FallTilesActionView extends ActionView {
   public play(view: GameView): this {

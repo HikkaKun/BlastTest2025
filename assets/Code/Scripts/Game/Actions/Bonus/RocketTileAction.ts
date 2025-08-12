@@ -13,7 +13,7 @@ export class RocketTileAction<T extends Tile> extends Action<T> {
     this.tile = tile;
   }
 
-  public do(field: (T | null)[][], extraTilesOut: Tile[]): this {
+  public do(field: (T | null)[][], activatedBonusTilesOut: Tile[]): this {
     const { x, y } = this.position;
     const width = field.length;
     const height = field[0].length;
@@ -27,7 +27,7 @@ export class RocketTileAction<T extends Tile> extends Action<T> {
             const tile = field[_x][y];
             if (!tile) continue;
             if (tile.type === 'color') this.commands.push(new SetCommand<Tile>({ x: _x, y }, null).do(field));
-            else extraTilesOut.push(tile);
+            else activatedBonusTilesOut.push(tile);
           }
           break;
         case 'vertical':
@@ -37,7 +37,7 @@ export class RocketTileAction<T extends Tile> extends Action<T> {
             const tile = field[x][_y];
             if (!tile) continue;
             if (tile.type === 'color') this.commands.push(new SetCommand<Tile>({ x, y: _y }, null).do(field));
-            else extraTilesOut.push(tile);
+            else activatedBonusTilesOut.push(tile);
           }
           break;
       }

@@ -5,14 +5,16 @@ export type ColorTile = {
   color: Color;
 }
 
-export type RocketBonusTile = {
+export type BaseBonusTile = {
+  type: 'bonus';
+  color?: Color;
+}
+
+export type RocketBonusTile = BaseBonusTile & {
   bonusType: 'rocket';
   directions: ('horizontal' | 'vertical')[];
 }
 
-export type BonusTile = {
-  type: 'bonus';
-  color?: Color;
-} & RocketBonusTile;
+export type BonusTile = RocketBonusTile;
 
 export type Tile = ColorTile | BonusTile;

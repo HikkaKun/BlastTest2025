@@ -1,7 +1,7 @@
-import { SetCommand } from '../../Game/Actions/Commands/SetCommand';
-import { Tile } from '../../Game/Tile';
-import GameView from '../GameView';
-import { ActionView } from './ActionView';
+import { SetCommand } from '../../../Game/Actions/Commands/SetCommand';
+import { Tile } from '../../../Game/Tile';
+import GameView from '../../GameView';
+import { ActionView } from '../ActionView';
 
 export class DeleteTilesActionView extends ActionView {
   public play(view: GameView): this {

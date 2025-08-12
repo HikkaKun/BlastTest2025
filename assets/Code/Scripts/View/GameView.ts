@@ -2,13 +2,15 @@ import { Action } from '../Game/Actions/Action';
 import { DeleteTilesAction } from '../Game/Actions/Common/DeleteTilesAction';
 import { FallTilesAction } from '../Game/Actions/Common/FallTilesAction';
 import { FillTilesAction } from '../Game/Actions/Common/FillTilesAction';
+import { MergeTilesAction } from '../Game/Actions/Common/MergeTilesAction';
 import { Game } from '../Game/Game';
 import { Tile } from '../Game/Tile';
 import { ActionView } from './ActionView/ActionView';
-import { DeleteTilesActionView } from './ActionView/DeleteTilesActionView';
-import { FallTilesActionView } from './ActionView/FallTilesActionView';
-import { FillTilesActionView } from './ActionView/FillTilesActionView';
-import TileView3 from './TileView';
+import { DeleteTilesActionView } from './ActionView/Common/DeleteTilesActionView';
+import { FallTilesActionView } from './ActionView/Common/FallTilesActionView';
+import { FillTilesActionView } from './ActionView/Common/FillTilesActionView';
+import { MergeTilesActionView } from './ActionView/Common/MergeTilesActionView';
+import TileView from './TileView';
 
 const { ccclass, property } = cc._decorator;
 
@@ -37,7 +39,7 @@ export default class GameView extends cc.Component {
 
     private _config?: {
         game: Game;
-        field: (TileView3 | null)[][];
+        field: (TileView | null)[][];
     }
     public get config() {
         return this._config;
@@ -55,13 +57,15 @@ export default class GameView extends cc.Component {
             this._actionView = new FallTilesActionView(action).play(this);
         } else if (action instanceof FillTilesAction) {
             this._actionView = new FillTilesActionView(action).play(this);
+        } else if (action instanceof MergeTilesAction) {
+            this._actionView = new MergeTilesActionView(action).play(this);
         }
     }
 
     public bind(game: Game) {
         const width = game.config.width;
         const height = game.config.height;
-        const field: (TileView3 | null)[][] = [];
+        const field: (TileView | null)[][] = [];
 
         this._config = {
             game,
@@ -88,11 +92,11 @@ export default class GameView extends cc.Component {
         return out;
     }
 
-    public createTileView(position: IVec2Like, tile: Tile): TileView3 {
+    public createTileView(position: IVec2Like, tile: Tile): TileView {
         const node = cc.instantiate(this._tileViewPrefab);
         node.setParent(this.node);
         node.setPosition(this.getViewPosition(temp, position));
-        const view = node.getComponent(TileView3);
+        const view = node.getComponent(TileView);
         view.bind(this, position, tile);
 
         return view;
