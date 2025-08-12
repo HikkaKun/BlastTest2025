@@ -6,7 +6,7 @@ import { ActionView } from './ActionView';
 export class FillTilesActionView extends ActionView {
   public play(view: GameView): this {
     if (!view.config) return this;
-    this._isPlaying = true;
+    // this._isPlaying = true;
     let delay = 0;
 
     const commands = this._action.commands as SetCommand<Tile>[];
@@ -19,7 +19,7 @@ export class FillTilesActionView extends ActionView {
       delay = Math.max(delay, tileView.animateFall());
     }
 
-    view.scheduleOnce(() => this._isPlaying = false, delay);
+    // view.scheduleOnce(() => this._isPlaying = false, delay);
 
     return this;
   }

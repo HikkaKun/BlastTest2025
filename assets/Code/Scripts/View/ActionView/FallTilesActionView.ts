@@ -6,7 +6,7 @@ import { ActionView } from './ActionView';
 export class FallTilesActionView extends ActionView {
   public play(view: GameView): this {
     if (!view.config) return this;
-    this._isPlaying = true;
+    // this._isPlaying = true;
 
     let delay = 0;
 
@@ -21,7 +21,7 @@ export class FallTilesActionView extends ActionView {
       view.config.field[x2][y2] = tileView;
     }
 
-    view.scheduleOnce(() => this._isPlaying = false, delay);
+    // view.scheduleOnce(() => this._isPlaying = false, delay);
 
     return this;
   }
