@@ -20,10 +20,6 @@ export type BombBonusTile = BaseBonusTile & {
   radius: number;
 }
 
-export type SupernovaBonusTile = BaseBonusTile & {
-  bonusType: 'supernova';
-}
-
-export type BonusTile = RocketBonusTile | BombBonusTile | SupernovaBonusTile;
+export type BonusTile = RocketBonusTile | BombBonusTile;
 
 export type Tile = ColorTile | BonusTile;

@@ -76,9 +76,6 @@ export class Game extends cc.EventTarget {
           case 'bomb':
             actions.push(new BombTileAction(position).do(this._field, bonusTilePositions));
             break;
-          case 'supernova':
-            actions.push();
-            break;
         }
       } while (bonusTilePositions.length);
     }
