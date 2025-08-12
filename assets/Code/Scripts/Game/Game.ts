@@ -57,15 +57,16 @@ export class Game extends cc.EventTarget {
       }
     }
     if (tile.type === 'bonus') {
-      const bonusTiles: BonusTile[] = [tile];
+      const bonusTilePositions: IVec2Like[] = [position];
       do {
-        const tile = bonusTiles.shift()!;
+        const position = bonusTilePositions.shift()!;
+        const tile = field[position.x][position.y] as BonusTile;
         switch (tile.bonusType) {
           case 'rocket':
-            actions.push(new RocketTileAction(position, tile).do(this._field, bonusTiles));
+            actions.push(new RocketTileAction(position, tile).do(this._field, bonusTilePositions));
             break;
         }
-      } while (bonusTiles.length);
+      } while (bonusTilePositions.length);
     }
 
     actions.push(

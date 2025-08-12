@@ -6,6 +6,7 @@ export class FallTilesAction<T extends Tile> extends Action<T> {
   public do(field: (T | null)[][]) {
     const width = field.length;
     const height = field[0].length;
+
     for (let x = 0; x < width; x++) {
       let lastEmptyY = -1;
       for (let y = 0; y < height; y++) {

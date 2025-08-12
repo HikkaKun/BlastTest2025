@@ -1,4 +1,5 @@
 import { Action } from '../Game/Actions/Action';
+import { RocketTileAction } from '../Game/Actions/Bonus/RocketTileAction';
 import { DeleteTilesAction } from '../Game/Actions/Common/DeleteTilesAction';
 import { FallTilesAction } from '../Game/Actions/Common/FallTilesAction';
 import { FillTilesAction } from '../Game/Actions/Common/FillTilesAction';
@@ -6,6 +7,7 @@ import { MergeTilesAction } from '../Game/Actions/Common/MergeTilesAction';
 import { Game } from '../Game/Game';
 import { Tile } from '../Game/Tile';
 import { ActionView } from './ActionView/ActionView';
+import { RocketTileActionView } from './ActionView/Bonus/RocketTileActionView';
 import { DeleteTilesActionView } from './ActionView/Common/DeleteTilesActionView';
 import { FallTilesActionView } from './ActionView/Common/FallTilesActionView';
 import { FillTilesActionView } from './ActionView/Common/FillTilesActionView';
@@ -14,13 +16,26 @@ import TileView from './TileView';
 
 const { ccclass, property } = cc._decorator;
 
-@ccclass('SpriteFrameConfig')
-class SpriteFrameConfig {
+enum TileViewType {
+    SPRITE_FRAME,
+    PREFAB,
+}
+
+cc.Enum(TileViewType);
+
+@ccclass('TileViewConfig')
+class TileViewConfig {
     @property()
     public readonly id: string = '';
 
-    @property(cc.SpriteFrame)
+    @property({ type: TileViewType })
+    public readonly type: TileViewType = TileViewType.SPRITE_FRAME;
+
+    @property({ type: cc.SpriteFrame, visible: function (this: TileViewConfig) { return this.type === TileViewType.SPRITE_FRAME } })
     public readonly spriteFrame: cc.SpriteFrame = null!;
+
+    @property({ type: cc.Prefab, visible: function (this: TileViewConfig) { return this.type === TileViewType.PREFAB } })
+    public readonly prefab: cc.Prefab = null!;
 }
 
 @ccclass
@@ -34,8 +49,8 @@ export default class GameView extends cc.Component {
     @property({ type: cc.Prefab, visible: true })
     private _tileViewPrefab: cc.Prefab = null!;
 
-    @property({ type: [SpriteFrameConfig], visible: true })
-    private _spriteFrameConfigs: SpriteFrameConfig[] = [];
+    @property({ type: [TileViewConfig], visible: true })
+    private _tileViewConfigs: TileViewConfig[] = [];
 
     private _config?: {
         game: Game;
@@ -59,6 +74,8 @@ export default class GameView extends cc.Component {
             this._actionView = new FillTilesActionView(action).play(this);
         } else if (action instanceof MergeTilesAction) {
             this._actionView = new MergeTilesActionView(action).play(this);
+        } else if (action instanceof RocketTileAction) {
+            this._actionView = new RocketTileActionView(action).play(this);
         }
     }
 
@@ -102,15 +119,21 @@ export default class GameView extends cc.Component {
         return view;
     }
 
-    public getTileSprite(tile: Tile): cc.SpriteFrame {
+    public getTileSprite(tile: Tile): cc.SpriteFrame | cc.Node {
+        let config: TileViewConfig;
         if (tile.type === 'color') {
-            return this._spriteFrameConfigs.find(c => c.id === tile.color)!.spriteFrame;
+            config = this._tileViewConfigs.find(c => c.id === tile.color)!;
         } else {
             switch (tile.bonusType) {
                 case 'rocket':
-                    return this._spriteFrameConfigs.find(c => c.id === `rocket_${tile.directions.length > 1 ? 'cross' : tile.directions[0]}`)!.spriteFrame;
+                    config = this._tileViewConfigs.find(c => c.id === `rocket_${tile.directions.length > 1 ? 'cross' : tile.directions[0]}`)!;
             }
         }
+
+        if (config.type === TileViewType.SPRITE_FRAME) return config.spriteFrame;
+
+        const node = cc.instantiate(config.prefab);
+        return node;
     }
 
     public userInput(position: IVec2Like) {

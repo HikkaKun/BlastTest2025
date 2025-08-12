@@ -13,31 +13,44 @@ export class RocketTileAction<T extends Tile> extends Action<T> {
     this.tile = tile;
   }
 
-  public do(field: (T | null)[][], activatedBonusTilesOut: Tile[]): this {
+  public do(field: (T | null)[][], activatedBonusTilesPositionsOut: IVec2Like[]): this {
     const { x, y } = this.position;
     const width = field.length;
     const height = field[0].length;
 
+    this.commands.push(new SetCommand<Tile>(this.position, null).do(field));
     for (const direction of this.tile.directions) {
       switch (direction) {
         case 'horizontal':
           for (let i = 1; i < width; i++) {
-            const _x = x - i;
-            if (_x < 0 || x >= width) continue;
-            const tile = field[_x][y];
-            if (!tile) continue;
-            if (tile.type === 'color') this.commands.push(new SetCommand<Tile>({ x: _x, y }, null).do(field));
-            else activatedBonusTilesOut.push(tile);
+            for (const multiplier of multipliers) {
+              const _x = x + i * multiplier;
+              if (_x < 0 || _x >= width) continue;
+              const tile = field[_x][y];
+              if (!tile) continue;
+              const position = { x: _x, y };
+              if (tile.type === 'color') {
+                this.commands.push(new SetCommand<Tile>(position, null).do(field));
+              } else {
+                activatedBonusTilesPositionsOut.push(position);
+              }
+            }
           }
           break;
         case 'vertical':
-          for (let i = 1; i < width; i++) {
-            const _y = y - i;
-            if (_y < 0 || y >= height) continue;
-            const tile = field[x][_y];
-            if (!tile) continue;
-            if (tile.type === 'color') this.commands.push(new SetCommand<Tile>({ x, y: _y }, null).do(field));
-            else activatedBonusTilesOut.push(tile);
+          for (let i = 1; i < height; i++) {
+            for (const multiplier of multipliers) {
+              const _y = y + i * multiplier;
+              if (_y < 0 || _y >= height) continue;
+              const tile = field[x][_y];
+              if (!tile) continue;
+              const position = { x, y: _y };
+              if (tile.type === 'color') {
+                this.commands.push(new SetCommand<Tile>(position, null).do(field));
+              } else {
+                activatedBonusTilesPositionsOut.push(position);
+              }
+            }
           }
           break;
       }
@@ -46,3 +59,5 @@ export class RocketTileAction<T extends Tile> extends Action<T> {
     return this;
   }
 }
+
+const multipliers = [-1, 1];

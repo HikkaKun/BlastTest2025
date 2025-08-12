@@ -5,8 +5,11 @@ const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class TileView extends cc.Component {
+  @property({ type: cc.Node, visible: true })
+  private _viewNode: cc.Node = null!;
+
   @property({ type: cc.Sprite, visible: true })
-  private _sprite: cc.Sprite = null!;
+  private _sprite: cc.Sprite | null = null;
 
   private _config?: {
     view: GameView;
@@ -39,7 +42,16 @@ export default class TileView extends cc.Component {
       tile
     };
 
-    this._sprite.spriteFrame = view.getTileSprite(tile);
+    const result = view.getTileSprite(tile);
+    if (result instanceof cc.SpriteFrame) {
+      this._sprite!.spriteFrame = result;
+    } else {
+      this._sprite!.node.destroy();
+      this._sprite = null;
+
+      result.setParent(this._viewNode);
+      result.setPosition(0, 0);
+    }
 
     return this;
   }
@@ -122,12 +134,12 @@ export default class TileView extends cc.Component {
 
     this._tweenCancelCallback?.();
     this._tweenCancelCallback = () => {
-      this._sprite.node.scale = 1;
-      this._sprite.node.setPosition(0, 0);
+      this._viewNode.scale = 1;
+      this._viewNode.setPosition(0, 0);
     }
     this._tween?.stop();
-    this._tween = new cc.Tween(this._sprite.node)
-      .to(0.1, { y: -this._sprite.node.height * 0.1, scaleX: 1.1, scaleY: 0.9 }, { easing: 'cubicOut' })
+    this._tween = new cc.Tween(this._viewNode)
+      .to(0.1, { y: -this._config.view.config!.game.config.height * 0.1, scaleX: 1.1, scaleY: 0.9 }, { easing: 'cubicOut' })
       .to(0.2, { y: 0, scale: 1 }, { easing: 'backOut' })
       .start();
   }
