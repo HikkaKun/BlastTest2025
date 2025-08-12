@@ -15,7 +15,8 @@ export class FallTilesActionView extends ActionView {
       const { x: x1, y: y1 } = command.from;
       const { x: x2, y: y2 } = command.to;
 
-      const tileView = view.config.field[x1][y1]!;
+      const tileView = view.config.field[x1][y1];
+      if (!tileView) continue;
       tileView.config!.position = command.to;
       delay = Math.max(delay, tileView.animateFall());
       view.config.field[x2][y2] = tileView;

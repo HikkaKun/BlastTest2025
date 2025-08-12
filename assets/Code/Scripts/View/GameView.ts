@@ -1,4 +1,5 @@
 import { Action } from '../Game/Actions/Action';
+import { BombTileAction } from '../Game/Actions/Bonus/BombTileAction';
 import { RocketTileAction } from '../Game/Actions/Bonus/RocketTileAction';
 import { DeleteTilesAction } from '../Game/Actions/Common/DeleteTilesAction';
 import { FallTilesAction } from '../Game/Actions/Common/FallTilesAction';
@@ -7,6 +8,7 @@ import { MergeTilesAction } from '../Game/Actions/Common/MergeTilesAction';
 import { Game } from '../Game/Game';
 import { Tile } from '../Game/Tile';
 import { ActionView } from './ActionView/ActionView';
+import { BombTileActionView } from './ActionView/Bonus/BombTileActionView';
 import { RocketTileActionView } from './ActionView/Bonus/RocketTileActionView';
 import { DeleteTilesActionView } from './ActionView/Common/DeleteTilesActionView';
 import { FallTilesActionView } from './ActionView/Common/FallTilesActionView';
@@ -76,6 +78,8 @@ export default class GameView extends cc.Component {
             this._actionView = new MergeTilesActionView(action).play(this);
         } else if (action instanceof RocketTileAction) {
             this._actionView = new RocketTileActionView(action).play(this);
+        } else if (action instanceof BombTileAction) {
+            this._actionView = new BombTileActionView(action).play(this);
         }
     }
 
@@ -127,6 +131,10 @@ export default class GameView extends cc.Component {
             switch (tile.bonusType) {
                 case 'rocket':
                     config = this._tileViewConfigs.find(c => c.id === `rocket_${tile.directions.length > 1 ? 'cross' : tile.directions[0]}`)!;
+                    break;
+                case 'bomb':
+                    config = this._tileViewConfigs.find(c => c.id === 'bomb')!;
+                    break;
             }
         }
 

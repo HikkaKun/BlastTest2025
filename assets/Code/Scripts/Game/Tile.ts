@@ -15,6 +15,15 @@ export type RocketBonusTile = BaseBonusTile & {
   directions: ('horizontal' | 'vertical')[];
 }
 
-export type BonusTile = RocketBonusTile;
+export type BombBonusTile = BaseBonusTile & {
+  bonusType: 'bomb';
+  radius: number;
+}
+
+export type SupernovaBonusTile = BaseBonusTile & {
+  bonusType: 'supernova';
+}
+
+export type BonusTile = RocketBonusTile | BombBonusTile | SupernovaBonusTile;
 
 export type Tile = ColorTile | BonusTile;

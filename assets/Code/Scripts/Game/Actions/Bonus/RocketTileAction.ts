@@ -4,22 +4,21 @@ import { SetCommand } from '../Commands/SetCommand';
 
 export class RocketTileAction<T extends Tile> extends Action<T> {
   public position: IVec2Like;
-  public tile: RocketBonusTile;
 
-  constructor(position: IVec2Like, tile: RocketBonusTile) {
+  constructor(position: IVec2Like) {
     super();
 
     this.position = position;
-    this.tile = tile;
   }
 
   public do(field: (T | null)[][], activatedBonusTilesPositionsOut: IVec2Like[]): this {
     const { x, y } = this.position;
     const width = field.length;
     const height = field[0].length;
+    const tile = field[x][y] as RocketBonusTile;
 
     this.commands.push(new SetCommand<Tile>(this.position, null).do(field));
-    for (const direction of this.tile.directions) {
+    for (const direction of tile.directions) {
       switch (direction) {
         case 'horizontal':
           for (let i = 1; i < width; i++) {

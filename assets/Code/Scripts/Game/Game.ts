@@ -1,4 +1,5 @@
 import { getRandomElementArray } from '../Utils/Arrays';
+import { BombTileAction } from './Actions/Bonus/BombTileAction';
 import { RocketTileAction } from './Actions/Bonus/RocketTileAction';
 import { DeleteTilesAction } from './Actions/Common/DeleteTilesAction';
 import { FallTilesAction } from './Actions/Common/FallTilesAction';
@@ -6,7 +7,7 @@ import { FillTilesAction } from './Actions/Common/FillTilesAction';
 import { MergeTilesAction } from './Actions/Common/MergeTilesAction';
 import { Color } from './Color';
 import { Config } from './Config';
-import { BonusTile, RocketBonusTile, Tile } from './Tile';
+import { BombBonusTile, BonusTile, RocketBonusTile, Tile } from './Tile';
 import { dijkstra, getNeighbors4 } from './Utils/Dijkstra';
 
 export class Game extends cc.EventTarget {
@@ -45,13 +46,20 @@ export class Game extends cc.EventTarget {
       const count = matchedTilesPositions.length;
       if (count < 2) return;
 
-      if (count > 4) {
+      if (count > 4 && count <= 6) {
         const rocket: RocketBonusTile = {
           type: 'bonus',
           bonusType: 'rocket',
           directions: [getRandomElementArray(['vertical', 'horizontal'])]
         };
         actions.push(new MergeTilesAction<Tile>(matchedTilesPositions, position, rocket).do(field));
+      } else if (count > 6) {
+        const bomb: BombBonusTile = {
+          type: 'bonus',
+          bonusType: 'bomb',
+          radius: 2
+        };
+        actions.push(new MergeTilesAction<Tile>(matchedTilesPositions, position, bomb).do(field));
       } else {
         actions.push(new DeleteTilesAction(matchedTilesPositions).do(field));
       }
@@ -63,7 +71,13 @@ export class Game extends cc.EventTarget {
         const tile = field[position.x][position.y] as BonusTile;
         switch (tile.bonusType) {
           case 'rocket':
-            actions.push(new RocketTileAction(position, tile).do(this._field, bonusTilePositions));
+            actions.push(new RocketTileAction(position).do(this._field, bonusTilePositions));
+            break;
+          case 'bomb':
+            actions.push(new BombTileAction(position).do(this._field, bonusTilePositions));
+            break;
+          case 'supernova':
+            actions.push();
             break;
         }
       } while (bonusTilePositions.length);

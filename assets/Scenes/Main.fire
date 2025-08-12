@@ -81,10 +81,10 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 16
+        "__id__": 17
       },
       {
-        "__id__": 17
+        "__id__": 18
       }
     ],
     "_prefab": null,
@@ -346,6 +346,9 @@
       },
       {
         "__id__": 15
+      },
+      {
+        "__id__": 16
       }
     ],
     "_id": "0cEXO5LBZNT434Vi+94+Dn"
@@ -473,6 +476,15 @@
     "spriteFrame": null,
     "prefab": {
       "__uuid__": "856030c6-4775-4778-a170-086e17254a6a"
+    }
+  },
+  {
+    "__type__": "TileViewConfig",
+    "id": "bomb",
+    "type": 1,
+    "spriteFrame": null,
+    "prefab": {
+      "__uuid__": "b4d6bb86-1c18-40b8-9221-01f0ee129e45"
     }
   },
   {
