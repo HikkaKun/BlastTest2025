@@ -31,7 +31,7 @@ export default abstract class BoosterView extends CustomComponent {
   protected abstract _gameViewCustomInputCallback: (position: IVec2Like) => any;
 
   protected onTouchStart() {
-    if (!this._gameView?.config) return;
+    if (!this._gameView?.config || this._gameView.config.game.boosters[this._boosterId as keyof Config['boosters']]! <= 0) return;
 
     if (this._gameView.customInputCallback === this._gameViewCustomInputCallback || this._gameView.customInputCallback !== null) return;
     this._gameView.customInputCallback = this._gameViewCustomInputCallback;

@@ -3,6 +3,7 @@ import { Action } from './Actions/Action';
 import { BombTileAction } from './Actions/Bonus/BombTileAction';
 import { RocketTileAction } from './Actions/Bonus/RocketTileAction';
 import { SwapTilesAction } from './Actions/Boosters/SwapTilesAction';
+import { SetCommand } from './Actions/Commands/SetCommand';
 import { DeleteTilesAction } from './Actions/Common/DeleteTilesAction';
 import { FallTilesAction } from './Actions/Common/FallTilesAction';
 import { FillTilesAction } from './Actions/Common/FillTilesAction';
@@ -16,6 +17,11 @@ export class Game extends cc.EventTarget {
   private _movesLeft: number;
   public get movesLeft() {
     return this._movesLeft;
+  }
+
+  private _score = 0;
+  public get score() {
+    return this._score;
   }
 
   private _config: Config;
@@ -99,15 +105,38 @@ export class Game extends cc.EventTarget {
     );
 
     spendMove && this._movesLeft--;
+
+    actions.forEach(a => a.commands.forEach(c => {
+      if (c instanceof SetCommand && c.newValue == null) this._score += 10;
+    }))
+
+    let isWin = false;
+    for (const objective of this.config.objectives) {
+      switch (objective.type) {
+        case 'score':
+          if (this.score >= objective.target) isWin = true;
+          break;
+      }
+    }
+
+    if (this.movesLeft <= 0 && !isWin) {
+      this.emit('LOSE');
+    } else if (isWin) {
+      this.emit('WIN');
+    }
+
     this.emit('DO_ACTIONS', actions);
   }
 
   public doAction(action: Action<Tile>) {
     if (action instanceof SwapTilesAction) {
+      this._boosters.swap--;
       action.do(this.field);
-    } else if (action instanceof BombTileAction) {
-      return this.userInput(action.position, [action], false);
     }
+    //  else if (action instanceof BombTileAction) {
+    //   this._boosters.bomb--;
+    //   return this.userInput(action.position, [action], false);
+    // }
 
     this.emit('DO_ACTIONS', [action]);
   }

@@ -8,13 +8,15 @@
     ]
   ],
   "excluded-modules": [
+    "Audio",
+    "AudioSource",
+    "Button",
     "Collider",
     "DragonBones",
     "EditBox",
     "Graphics",
     "Geom Utils",
     "Intersection",
-    "Layout",
     "Label Effect",
     "Mask",
     "Mesh",
@@ -65,5 +67,6 @@
     "audience": {
       "enable": false
     }
-  }
+  },
+  "last-module-event-record-time": 1755197321642
 }

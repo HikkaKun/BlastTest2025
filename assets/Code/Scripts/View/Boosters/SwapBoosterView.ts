@@ -1,4 +1,5 @@
 import { SwapTilesAction } from '../../Game/Actions/Boosters/SwapTilesAction';
+import { Config } from '../../Game/Config';
 import BoosterView from './BoosterView';
 
 const { ccclass, property } = cc._decorator;

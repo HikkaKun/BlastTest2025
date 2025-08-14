@@ -139,6 +139,13 @@ export default class TileView extends CustomComponent {
           }
         }
       })
+      .call(() => {
+        this.node.zIndex = 0;
+
+        const children = this.node.parent.children.slice();
+        children.sort((a, b) => a.y - b.y);
+        children.forEach((n, i) => n.setSiblingIndex(i));
+      })
       .start();
 
     return time;
