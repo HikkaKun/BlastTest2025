@@ -1,10 +1,11 @@
 import { Tile } from '../Game/Tile';
+import CustomComponent from '../Utils/CustomComponent';
 import GameView from './GameView';
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class TileView extends cc.Component {
+export default class TileView extends CustomComponent {
   @property({ type: cc.Node, visible: true })
   private _viewNode: cc.Node = null!;
 
@@ -22,14 +23,6 @@ export default class TileView extends cc.Component {
 
   private _tween?: cc.Tween;
   private _tweenCancelCallback?: () => void;
-
-  protected onEnable(): void {
-    this._toggleEvents('on');
-  }
-
-  protected onDisable(): void {
-    this._toggleEvents('off');
-  }
 
   protected _toggleEvents(func: 'on' | 'off') {
     this.node[func](cc.Node.EventType.TOUCH_START, this.onTouchStart, this);
@@ -100,6 +93,7 @@ export default class TileView extends cc.Component {
     const time = 0.2;
     this.moveToTop();
     this._tweenCancelCallback?.();
+    this._tweenCancelCallback = () => this.node.zIndex = 0;
     this._tween?.stop();
     this._tween = new cc.Tween(this.node)
       .to(time, { position }, { easing: 'backIn' })
@@ -124,10 +118,35 @@ export default class TileView extends cc.Component {
     return time;
   }
 
-  public moveToTop() {
-    this.node.zIndex = 1;
+  public animateSwap(): number {
+    if (!this.config) return 0;
+    this.moveToTop();
+    const position = this.config.view.getViewPosition(new cc.Vec2(), this.config.position);
+    const time = 0.5;
+    this._tweenCancelCallback?.();
+    this._tweenCancelCallback = () => {
+      this.node.zIndex = 0;
+      this.node.scale = 1;
+    };
+    this._tween?.stop();
+    this._tween = new cc.Tween(this.node)
+      .to(time, { position }, {
+        easing: 'sineInOut', onUpdate: (_: any, ratio: number) => {
+          if (ratio < 0.5) {
+            this.node.scale = 1 + cc.easing.sineIn(ratio * 2);
+          } else {
+            this.node.scale = 1 + cc.easing.sineIn((1 - ratio) * 2);
+          }
+        }
+      })
+      .start();
+
+    return time;
   }
 
+  public moveToTop() {
+    this.node.zIndex++;
+  }
 
   private _animateLanding() {
     if (!this._config) return;

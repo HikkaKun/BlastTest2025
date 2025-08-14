@@ -1,6 +1,7 @@
 import { Action } from '../Game/Actions/Action';
 import { BombTileAction } from '../Game/Actions/Bonus/BombTileAction';
 import { RocketTileAction } from '../Game/Actions/Bonus/RocketTileAction';
+import { SwapTilesAction } from '../Game/Actions/Boosters/SwapTilesAction';
 import { DeleteTilesAction } from '../Game/Actions/Common/DeleteTilesAction';
 import { FallTilesAction } from '../Game/Actions/Common/FallTilesAction';
 import { FillTilesAction } from '../Game/Actions/Common/FillTilesAction';
@@ -10,6 +11,7 @@ import { Tile } from '../Game/Tile';
 import { ActionView } from './ActionView/ActionView';
 import { BombTileActionView } from './ActionView/Bonus/BombTileActionView';
 import { RocketTileActionView } from './ActionView/Bonus/RocketTileActionView';
+import { SwapTilesActionView } from './ActionView/Booster/SwapTilesActionView';
 import { DeleteTilesActionView } from './ActionView/Common/DeleteTilesActionView';
 import { FallTilesActionView } from './ActionView/Common/FallTilesActionView';
 import { FillTilesActionView } from './ActionView/Common/FillTilesActionView';
@@ -40,6 +42,16 @@ class TileViewConfig {
     public readonly prefab: cc.Prefab = null!;
 }
 
+const actionViewMap = new Map<{ new(...args: any): Action<Tile> }, { new(...args: any): ActionView }>([
+    [DeleteTilesAction, DeleteTilesActionView],
+    [FallTilesAction, FallTilesActionView],
+    [FillTilesAction, FillTilesActionView],
+    [MergeTilesAction, MergeTilesActionView],
+    [RocketTileAction, RocketTileActionView],
+    [BombTileAction, BombTileActionView],
+    [SwapTilesAction, SwapTilesActionView]
+]);
+
 @ccclass
 export default class GameView extends cc.Component {
     @property
@@ -53,6 +65,8 @@ export default class GameView extends cc.Component {
 
     @property({ type: [TileViewConfig], visible: true })
     private _tileViewConfigs: TileViewConfig[] = [];
+
+    public customInputCallback: ((position: IVec2Like) => any) | null = null;
 
     private _config?: {
         game: Game;
@@ -68,18 +82,10 @@ export default class GameView extends cc.Component {
     protected update(dt: number): void {
         if (!this.config || !this._actions.length || this._actionView?.isPlaying) return;
         const action = this._actions.shift()!;
-        if (action instanceof DeleteTilesAction) {
-            this._actionView = new DeleteTilesActionView(action).play(this);
-        } else if (action instanceof FallTilesAction) {
-            this._actionView = new FallTilesActionView(action).play(this);
-        } else if (action instanceof FillTilesAction) {
-            this._actionView = new FillTilesActionView(action).play(this);
-        } else if (action instanceof MergeTilesAction) {
-            this._actionView = new MergeTilesActionView(action).play(this);
-        } else if (action instanceof RocketTileAction) {
-            this._actionView = new RocketTileActionView(action).play(this);
-        } else if (action instanceof BombTileAction) {
-            this._actionView = new BombTileActionView(action).play(this);
+        for (const [Action, ActionView] of actionViewMap) {
+            if (action instanceof Action) {
+                this._actionView = new ActionView(action).play(this);
+            }
         }
     }
 
@@ -146,7 +152,11 @@ export default class GameView extends cc.Component {
 
     public userInput(position: IVec2Like) {
         if (this._actionView?.isPlaying) return;
-        this._config?.game.userInput(position);
+        if (this.customInputCallback) {
+            this.customInputCallback(position);
+        } else {
+            this._config?.game.userInput(position);
+        }
     }
 
     protected onDoActions(actions: Action<Tile>[]) {

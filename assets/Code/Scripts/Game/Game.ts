@@ -1,6 +1,8 @@
 import { getRandomElementArray } from '../Utils/Arrays';
+import { Action } from './Actions/Action';
 import { BombTileAction } from './Actions/Bonus/BombTileAction';
 import { RocketTileAction } from './Actions/Bonus/RocketTileAction';
+import { SwapTilesAction } from './Actions/Boosters/SwapTilesAction';
 import { DeleteTilesAction } from './Actions/Common/DeleteTilesAction';
 import { FallTilesAction } from './Actions/Common/FallTilesAction';
 import { FillTilesAction } from './Actions/Common/FillTilesAction';
@@ -11,6 +13,11 @@ import { BombBonusTile, BonusTile, RocketBonusTile, Tile } from './Tile';
 import { dijkstra, getNeighbors4 } from './Utils/Dijkstra';
 
 export class Game extends cc.EventTarget {
+  private _movesLeft: number;
+  public get movesLeft() {
+    return this._movesLeft;
+  }
+
   private _config: Config;
   public get config() {
     return this._config;
@@ -21,10 +28,17 @@ export class Game extends cc.EventTarget {
     return this._field;
   }
 
+  private _boosters: Config['boosters'];
+  public get boosters() {
+    return this._boosters;
+  }
+
   constructor(config: Config) {
     super();
 
     this._config = config;
+    this._movesLeft = config.moves;
+    this._boosters = Object.assign({}, config.boosters);
     this._field = [];
     for (let x = 0; x < config.width; x++) {
       const column: (Tile | null)[] = [];
@@ -35,11 +49,10 @@ export class Game extends cc.EventTarget {
     }
   }
 
-  public userInput(position: IVec2Like) {
+  public userInput(position: IVec2Like, actions: Action<Tile>[] = [], spendMove = true) {
     const field = this._field;
     const tile = this._field[position.x][position.y];
     if (!tile) return;
-    const actions = [];
 
     if (tile.type === 'color') {
       const matchedTilesPositions = this._getConnectedTilesPositionsByColorAndType(position);
@@ -85,8 +98,18 @@ export class Game extends cc.EventTarget {
       new FillTilesAction(() => this._createRegularTile()).do(field),
     );
 
+    spendMove && this._movesLeft--;
     this.emit('DO_ACTIONS', actions);
-    return actions;
+  }
+
+  public doAction(action: Action<Tile>) {
+    if (action instanceof SwapTilesAction) {
+      action.do(this.field);
+    } else if (action instanceof BombTileAction) {
+      return this.userInput(action.position, [action], false);
+    }
+
+    this.emit('DO_ACTIONS', [action]);
   }
 
   private _createRegularTile(): Tile {
